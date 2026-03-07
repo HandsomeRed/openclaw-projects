@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏮 梦幻西游放置挂机</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(180deg, #1a0a2e 0%, #2d1b4e 50%, #1a0a2e 100%);
+            min-height: 100vh;
+            color: #f0e6d3;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 10px; }
+        
+        /* 顶部状态栏 */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(90deg, #4a1a6b, #6b2d8a, #4a1a6b);
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 15px rgba(106, 45, 138, 0.5);
+        }
+        .top-bar .player-info { display: flex; align-items: center; gap: 20px; }
+        .top-bar .player-name { font-size: 1.2em; color: #ffd700; }
+        .top-bar .player-level { color: #87ceeb; }
+        .top-bar .currency { display: flex; gap: 20px; }
+        .top-bar .currency-item { display: flex; align-items: center; gap: 5px; }
+        
+        /* 主区域 */
+        .main-area { display: grid; grid-template-columns: 280px 1fr 280px; gap: 10px; }
+        
+        /* 左侧角色面板 */
+        .player-panel {
+            background: rgba(30, 15, 50, 0.9);
+            border-radius: 8px;
+            padding: 15px;
+            border: 2px solid #6b2d8a;
+        }
+        .player-avatar {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 10px;
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+        .player-basic { text-align: center; margin-bottom: 15px; }
+        .player-name-display { font-size: 1.3em; color: #ffd700; }
+        .player-faction { color: #87ceeb; font-size: 0.9em; }
+        
+        .stat-bar { margin-bottom: 10px; }
+        .stat-label { display: flex; justify-content: space-between; font-size: 0.85em; margin-bottom: 3px; }
+        .bar-bg { height: 14px; background: #1a0a2e; border-radius: 7px; overflow: hidden; }
+        .bar-fill { height: 100%; transition: width 0.3s; }
+        .hp-bar { background: linear-gradient(90deg, #ff4444, #ff6b6b); }
+        .mp-bar { background: linear-gradient(90deg, #4444ff, #6b6bff); }
+        .exp-bar { background: linear-gradient(90deg, #44ff44, #6bff6b); }
+        
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 15px 0; }
+        .stat-item { 
+            background: rgba(107, 45, 138, 0.3); 
+            padding: 8px; 
+            border-radius: 5px; 
+            font-size: 0.85em;
+            display: flex;
+            justify-content: space-between;
+        }
+        .stat-value { color: #ffd700; }
+        
+        .equipment-slots { margin-top: 15px; }
+        .equipment-title { color: #ffd700; margin-bottom: 10px; font-size: 0.9em; }
+        .equip-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .equip-slot {
+            aspect-ratio: 1;
+            background: rgba(30, 15, 50, 0.8);
+            border: 2px solid #6b2d8a;
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        .equip-slot:hover { border-color: #ffd700; }
+        .equip-slot .name { font-size: 0.6em; color: #87ceeb; margin-top: 3px; }
+        
+        /* 中间战斗区域 */
+        .battle-panel {
+            background: rgba(30, 15, 50, 0.9);
+            border-radius: 8px;
+            padding: 15px;
+            border: 2px solid #6b2d8a;
+            display: flex;
+            flex-direction: column;
+        }
+        .scene-area {
+            height: 200px;
+            background: linear-gradient(180deg, #2d1b4e 0%, #1a3a1a 100%);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        .scene-title {
+            position: absolute;
+            top: 10px;
+            left: 15px;
+            font-size: 1em;
+            color: #ffd700;
+            text-shadow: 1px 1px 3px #000;
+        }
+        .battle-area {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            height: 160px;
+            padding-top: 30px;
+        }
+        .character { text-align: center; transition: transform 0.2s; }
+        .character:hover { transform: scale(1.1); }
+        .char-sprite {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #6b2d8a, #9b4dca);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 35px;
+            margin: 0 auto 5px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+        .enemy .char-sprite { background: linear-gradient(135deg, #8b0000, #cd5c5c); }
+        .char-name { font-size: 0.9em; color: #fff; }
+        .char-hp { font-size: 0.8em; color: #ff6b6b; margin-top: 3px; }
+        .vs-text {
+            font-size: 2em;
+            color: #ffd700;
+            text-shadow: 2px 2px 4px #000;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .action-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .action-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: bold;
+        }
+        .attack-btn {
+            background: linear-gradient(180deg, #ff6b35, #d63031);
+            color: white;
+            box-shadow: 0 4px 0 #8b0000;
+        }
+        .auto-btn {
+            background: linear-gradient(180deg, #44b272, #2d8659);
+            color: white;
+            box-shadow: 0 4px 0 #1a4d35;
+        }
+        .auto-btn.active { background: linear-gradient(180deg, #ffd700, #ff8c00); }
+        
+        .log-area {
+            flex: 1;
+            background: rgba(30, 15, 50, 0.8);
+            border-radius: 8px;
+            padding: 10px;
+            overflow-y: auto;
+            max-height: 150px;
+            font-size: 0.85em;
+            line-height: 1.6;
+        }
+        .log-entry { padding: 3px 0; border-bottom: 1px solid rgba(107, 45, 138, 0.3); }
+        .log-damage { color: #ff6b6b; }
+        .log-gain { color: #44ff44; }
+        .log-level { color: #ffd700; font-weight: bold; }
+        .log-skill { color: #87ceeb; }
+        
+        /* 右侧任务面板 */
+        .task-panel {
+            background: rgba(30, 15, 50, 0.9);
+            border-radius: 8px;
+            padding: 15px;
+            border: 2px solid #6b2d8a;
+        }
+        .task-title { color: #ffd700; font-size: 1.1em; margin-bottom: 15px; }
+        .task-list { display: flex; flex-direction: column; gap: 10px; }
+        .task-item {
+            background: rgba(107, 45, 138, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .task-item:hover { background: rgba(107, 45, 138, 0.5); }
+        .task-item.active { border: 2px solid #ffd700; }
+        .task-item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .task-item-name { color: #ffd700; font-size: 0.95em; }
+        .task-item-count { color: #87ceeb; font-size: 0.8em; }
+        .task-item-reward { font-size: 0.8em; color: #c9a8ff; }
+        .task-progress { margin-top: 8px; }
+        .task-progress-bar { height: 6px; background: #1a0a2e; border-radius: 3px; overflow: hidden; }
+        .task-progress-fill { height: 100%; background: linear-gradient(90deg, #44ff44, #6bff6b); transition: width 0.3s; }
+        
+        .afk-control {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(107, 45, 138, 0.5);
+        }
+        .afk-btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .start-afk {
+            background: linear-gradient(180deg, #44b272, #2d8659);
+            color: white;
+            box-shadow: 0 4px 0 #1a4d35;
+        }
+        .stop-afk {
+            background: linear-gradient(180deg, #ff6b35, #d63031);
+            color: white;
+            box-shadow: 0 4px 0 #8b0000;
+        }
+        .afk-status {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #87ceeb;
+        }
+        .afk-rewards {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(30, 15, 50, 0.8);
+            border-radius: 5px;
+            font-size: 0.85em;
+        }
+        .afk-rewards-title { color: #ffd700; margin-bottom: 5px; }
+        .afk-reward-item { display: flex; justify-content: space-between; margin: 3px 0; }
+        
+        /* 底部操作栏 */
+        .bottom-bar {
+            display: flex;
+            justify-content: space-around;
+            background: rgba(30, 15, 50, 0.9);
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 10px;
+            border: 2px solid #6b2d8a;
+        }
+        .bottom-btn {
+            flex: 1;
+            margin: 0 5px;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background: rgba(107, 45, 138, 0.5);
+            color: #c9a8ff;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.2s;
+        }
+        .bottom-btn:hover { background: rgba(107, 45, 138, 0.8); color: #ffd700; }
+        
+        /* 弹窗 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: rgba(30, 15, 50, 0.95);
+            border: 2px solid #6b2d8a;
+            border-radius: 10px;
+            padding: 20px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(107, 45, 138, 0.5);
+        }
+        .modal-title { color: #ffd700; font-size: 1.2em; }
+        .modal-close {
+            background: none;
+            border: none;
+            color: #f0e6d3;
+            font-size: 1.5em;
+            cursor: pointer;
+        }
+        
+        /* 创建角色界面 */
+        .create-char {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, #1a0a2e 0%, #2d1b4e 50%, #1a0a2e 100%);
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .create-char.hidden { display: none; }
+        .create-char-content {
+            background: rgba(30, 15, 50, 0.95);
+            border: 2px solid #6b2d8a;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            text-align: center;
+        }
+        .create-char-title { color: #ffd700; font-size: 2em; margin-bottom: 30px; }
+        .race-select { display: flex; justify-content: center; gap: 20px; margin-bottom: 20px; }
+        .race-btn {
+            padding: 15px 30px;
+            border: 2px solid #6b2d8a;
+            border-radius: 10px;
+            background: rgba(30, 15, 50, 0.8);
+            color: #f0e6d3;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1em;
+        }
+        .race-btn:hover { border-color: #ffd700; }
+        .race-btn.selected { background: rgba(107, 45, 138, 0.8); border-color: #ffd700; }
+        .char-select { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin-bottom: 20px; }
+        .char-option {
+            width: 100px;
+            padding: 15px;
+            border: 2px solid #6b2d8a;
+            border-radius: 10px;
+            background: rgba(30, 15, 50, 0.8);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .char-option:hover { border-color: #ffd700; }
+        .char-option.selected { background: rgba(107, 45, 138, 0.8); border-color: #ffd700; }
+        .char-option-avatar { font-size: 2em; margin-bottom: 5px; }
+        .char-option-name { font-size: 0.9em; color: #f0e6d3; }
+        .faction-select { margin-bottom: 20px; }
+        .faction-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin: 5px 0;
+            border: 2px solid #6b2d8a;
+            border-radius: 8px;
+            background: rgba(30, 15, 50, 0.8);
+            color: #f0e6d3;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s;
+        }
+        .faction-btn:hover { border-color: #ffd700; }
+        .faction-btn.selected { background: rgba(107, 45, 138, 0.8); border-color: #ffd700; }
+        .char-name-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #6b2d8a;
+            border-radius: 8px;
+            background: rgba(30, 15, 50, 0.8);
+            color: #f0e6d3;
+            font-size: 1em;
+            margin-bottom: 20px;
+        }
+        .create-btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(180deg, #ffd700, #ff8c00);
+            color: #1a0a2e;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .create-btn:hover { transform: scale(1.02); }
+        
+        /* 通知 */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: linear-gradient(135deg, #6b2d8a, #9b4dca);
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            z-index: 3000;
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .damage-popup {
+            position: absolute;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #ff4444;
+            text-shadow: 2px 2px 0 #000;
+            animation: damageFloat 1s ease-out forwards;
+            pointer-events: none;
+        }
+        @keyframes damageFloat {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-50px); opacity: 0; }
+        }
+        
+        .level-up {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3em;
+            color: #ffd700;
+            text-shadow: 3px 3px 0 #000;
+            animation: levelUp 1.5s ease-out forwards;
+            z-index: 3000;
+        }
+        @keyframes levelUp {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <!-- 创建角色界面 -->
+    <div class="create-char" id="createCharScreen">
+        <div class="create-char-content">
+            <h1 class="create-char-title">🏮 梦幻西游放置挂机</h1>
+            
+            <div class="race-select">
+                <button class="race-btn selected" data-race="human">👤 人族</button>
+                <button class="race-btn" data-race="immortal">👼 仙族</button>
+                <button class="race-btn" data-race="demon">👹 魔族</button>
+            </div>
+            
+            <div class="char-select" id="charSelect"></div>
+            
+            <div class="faction-select" id="factionSelect"></div>
+            
+            <input type="text" class="char-name-input" id="charNameInput" placeholder="请输入角色名称" maxlength="6">
+            
+            <button class="create-btn" id="createCharBtn">开始冒险</button>
+        </div>
+    </div>
+    
+    <!-- 主游戏界面 -->
+    <div class="container">
+        <!-- 顶部状态栏 -->
+        <div class="top-bar">
+            <div class="player-info">
+                <div class="player-name">🎭 <span id="topPlayerName">逍遥生</span></div>
+                <div class="player-level">Lv.<span id="topPlayerLevel">1</span></div>
+                <div class="player-faction" id="topPlayerFaction">大唐官府</div>
+            </div>
+            <div class="currency">
+                <div class="currency-item">💰 <span id="topGold">0</span></div>
+                <div class="currency-item">💎 <span id="topDiamond">0</span></div>
+            </div>
+        </div>
+        
+        <!-- 主区域 -->
+        <div class="main-area">
+            <!-- 左侧角色面板 -->
+            <div class="player-panel">
+                <div class="player-avatar" id="playerAvatar">🧙</div>
+                <div class="player-basic">
+                    <div class="player-name-display" id="playerNameDisplay">逍遥生</div>
+                    <div class="player-faction" id="playerFactionDisplay">大唐官府</div>
+                </div>
+                
+                <div class="stat-bar">
+                    <div class="stat-label">
+                        <span>❤️ 气血</span>
+                        <span><span id="currentHp">100</span>/<span id="maxHp">100</span></span>
+                    </div>
+                    <div class="bar-bg"><div class="bar-fill hp-bar" id="hpBar" style="width: 100%"></div></div>
+                </div>
+                
+                <div class="stat-bar">
+                    <div class="stat-label">
+                        <span>💧 魔法</span>
+                        <span><span id="currentMp">50</span>/<span id="maxMp">50</span></span>
+                    </div>
+                    <div class="bar-bg"><div class="bar-fill mp-bar" id="mpBar" style="width: 100%"></div></div>
+                </div>
+                
+                <div class="stat-bar">
+                    <div class="stat-label">
+                        <span>✨ 经验</span>
+                        <span><span id="currentExp">0</span>/<span id="maxExp">100</span></span>
+                    </div>
+                    <div class="bar-bg"><div class="bar-fill exp-bar" id="expBar" style="width: 0%"></div></div>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-item"><span>⚔️ 攻击</span><span class="stat-value" id="attack">15</span></div>
+                    <div class="stat-item"><span>🛡️ 防御</span><span class="stat-value" id="defense">8</span></div>
+                    <div class="stat-item"><span>⚡ 速度</span><span class="stat-value" id="speed">10</span></div>
+                    <div class="stat-item"><span>🎯 灵力</span><span class="stat-value" id="spirit">5</span></div>
+                </div>
+                
+                <div class="equipment-slots">
+                    <div class="equipment-title">📦 装备栏</div>
+                    <div class="equip-grid">
+                        <div class="equip-slot" data-slot="weapon"><span>⚔️</span><span class="name">武器</span></div>
+                        <div class="equip-slot" data-slot="armor"><span>🛡️</span><span class="name">防具</span></div>
+                        <div class="equip-slot" data-slot="accessory"><span>💍</span><span class="name">饰品</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 中间战斗区域 -->
+            <div class="battle-panel">
+                <div class="scene-area">
+                    <div class="scene-title">📍 <span id="sceneName">长安城外</span></div>
+                    <div class="battle-area">
+                        <div class="character player">
+                            <div class="char-sprite" id="playerSprite">🧙</div>
+                            <div class="char-name" id="battlePlayerName">逍遥生</div>
+                            <div class="char-hp" id="playerHpDisplay">100/100</div>
+                        </div>
+                        <div class="vs-text">⚔️</div>
+                        <div class="character enemy">
+                            <div class="char-sprite" id="enemySprite">🐷</div>
+                            <div class="char-name" id="enemyName">野猪</div>
+                            <div class="char-hp" id="enemyHpDisplay">30/30</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="action-bar">
+                    <button class="action-btn attack-btn" id="attackBtn">⚔️ 攻击</button>
+                    <button class="action-btn auto-btn" id="autoBtn">🔄 自动</button>
+                    <button class="action-btn" style="background: linear-gradient(180deg, #4a90d9, #2d5a8a); color: white;" id="skillBtn">✨ 技能</button>
+                </div>
+                
+                <div class="log-area" id="battleLog">
+                    <div class="log-entry">欢迎来到梦幻西游放置挂机！</div>
+                </div>
+            </div>
+            
+            <!-- 右侧任务面板 -->
+            <div class="task-panel">
+                <div class="task-title">📋 任务列表</div>
+                <div class="task-list" id="taskList">
+                    <div class="task-item active" data-task="shimen">
+                        <div class="task-item-header">
+                            <span class="task-item-name">📜 师门任务</span>
+                            <span class="task-item-count"><span id="shimenCount">0</span>/20</span>
+                        </div>
+                        <div class="task-item-reward">经验+1000 银两+500</div>
+                        <div class="task-progress">
+                            <div class="task-progress-bar">
+                                <div class="task-progress-fill" id="shimenProgress" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="task-item" data-task="zhuagui">
+                        <div class="task-item-header">
+                            <span class="task-item-name">👻 抓鬼任务</span>
+                            <span class="task-item-count"><span id="zhuaguiCount">0</span>/10</span>
+                        </div>
+                        <div class="task-item-reward">经验+2000 银两+1000</div>
+                        <div class="task-progress">
+                            <div class="task-progress-bar">
+                                <div class="task-progress-fill" id="zhuaguiProgress" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="task-item" data-task="dungeon">
+                        <div class="task-item-header">
+                            <span class="task-item-name">🏰 副本挑战</span>
+                            <span class="task-item-count"><span id="dungeonCount">0</span>/3</span>
+                        </div>
+                        <div class="task-item-reward">经验+5000 银两+3000</div>
+                        <div class="task-progress">
+                            <div class="task-progress-bar">
+                                <div class="task-progress-fill" id="dungeonProgress" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="afk-control">
+                    <button class="afk-btn start-afk" id="afkBtn">🚀 开始挂机</button>
+                    <div class="afk-status" id="afkStatus">点击开始自动挂机</div>
+                    <div class="afk-rewards" id="afkRewards" style="display: none;">
+                        <div class="afk-rewards-title">📊 挂机收益</div>
+                        <div class="afk-reward-item"><span>战斗次数</span><span id="afkBattles">0</span></div>
+                        <div class="afk-reward-item"><span>获得经验</span><span id="afkExp">0</span></div>
+                        <div class="afk-reward-item"><span>获得银两</span><span id="afkGold">0</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 底部操作栏 -->
+        <div class="bottom-bar">
+            <button class="bottom-btn" id="bagBtn">🎒 背包</button>
+            <button class="bottom-btn" id="skillsBtn">✨ 技能</button>
+            <button class="bottom-btn" id="petBtn">🐾 宠物</button>
+            <button class="bottom-btn" id="mapBtn">🗺️ 地图</button>
+            <button class="bottom-btn" id="settingsBtn">⚙️ 设置</button>
+        </div>
+    </div>
+
+    <script>
+        // 游戏数据
+        const CHARACTERS = {
+            human: [
+                { id: 'jianxiake', name: '剑侠客', avatar: '🗡️', sprite: '🧙' },
+                { id: 'xiaoyaosheng', name: '逍遥生', avatar: '📜', sprite: '🧙' },
+                { id: 'feiyanu', name: '飞燕女', avatar: '🏹', sprite: '🧝' },
+                { id: 'yingnuxia', name: '英女侠', avatar: '⚔️', sprite: '🧝' }
+            ],
+            immortal: [
+                { id: 'longtaizi', name: '龙太子', avatar: '🐉', sprite: '👼' },
+                { id: 'shentianbing', name: '神天兵', avatar: '🔱', sprite: '👼' },
+                { id: 'xuancaoe', name: '玄彩娥', avatar: '🦋', sprite: '👸' },
+                { id: 'wutianji', name: '舞天姬', avatar: '💃', sprite: '👸' }
+            ],
+            demon: [
+                { id: 'hutouguai', name: '虎头怪', avatar: '🐯', sprite: '👹' },
+                { id: 'jumowang', name: '巨魔王', avatar: '💪', sprite: '👹' },
+                { id: 'humeiren', name: '狐美人', avatar: '🦊', sprite: '👸' },
+                { id: 'gujingling', name: '骨精灵', avatar: '💀', sprite: '👸' }
+            ]
+        };
+
+        const FACTIONS = {
+            human: [
+                { id: 'datang', name: '大唐官府', bonus: { attack: 5 }, skills: ['横扫千军', '后发制人'] },
+                { id: 'fangcun', name: '方寸山', bonus: { spirit: 5 }, skills: ['符咒', '定身'] },
+                { id: 'huasheng', name: '化生寺', bonus: { mp: 10 }, skills: ['治疗', '复活'] }
+            ],
+            immortal: [
+                { id: 'longgong', name: '龙宫', bonus: { spirit: 5 }, skills: ['龙卷雨击', '龙腾'] },
+                { id: 'tiangong', name: '天宫', bonus: { attack: 3, spirit: 3 }, skills: ['天雷斩', '五雷轰顶'] }
+            ],
+            demon: [
+                { id: 'mowang', name: '魔王寨', bonus: { hp: 10 }, skills: ['三昧真火', '飞沙走石'] },
+                { id: 'difu', name: '阴曹地府', bonus: { defense: 5 }, skills: ['阎罗令', '尸腐毒'] }
+            ]
+        };
+
+        const MONSTERS = [
+            { name: '野猪', sprite: '🐷', hpBase: 30, attackBase: 5, expBase: 15, goldBase: 5 },
+            { name: '山贼', sprite: '🗡️', hpBase: 45, attackBase: 8, expBase: 25, goldBase: 10 },
+            { name: '狐狸精', sprite: '🦊', hpBase: 35, attackBase: 12, expBase: 30, goldBase: 15 },
+            { name: '黑熊', sprite: '🐻', hpBase: 60, attackBase: 10, expBase: 35, goldBase: 18 },
+            { name: '龙虾怪', sprite: '🦞', hpBase: 50, attackBase: 15, expBase: 40, goldBase: 22 },
+            { name: '蛤蟆精', sprite: '🐸', hpBase: 40, attackBase: 18, expBase: 45, goldBase: 25 },
+            { name: '蜘蛛精', sprite: '🕷️', hpBase: 55, attackBase: 20, expBase: 50, goldBase: 30 },
+            { name: '牛头', sprite: '🐂', hpBase: 80, attackBase: 22, expBase: 60, goldBase: 35 },
+            { name: '马面', sprite: '🐴', hpBase: 75, attackBase: 25, expBase: 65, goldBase: 40 },
+            { name: '幽灵', sprite: '👻', hpBase: 65, attackBase: 28, expBase: 70, goldBase: 45 }
+        ];
+
+        // 游戏状态
+        let gameState = {
+            player: null,
+            enemy: null,
+            isAuto: false,
+            isAfk: false,
+            autoInterval: null,
+            afkInterval: null,
+            currentTask: 'shimen',
+            tasks: {
+                shimen: { count: 0, max: 20 },
+                zhuagui: { count: 0, max: 10 },
+                dungeon: { count: 0, max: 3 }
+            },
+            afkStats: { battles: 0, exp: 0, gold: 0 },
+            battleLog: []
+        };
+
+        // 工具函数
+        function $(id) { return document.getElementById(id); }
+        
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 3000);
+        }
+        
+        function showLevelUp() {
+            const levelUp = document.createElement('div');
+            levelUp.className = 'level-up';
+            levelUp.textContent = 'LEVEL UP!';
+            document.body.appendChild(levelUp);
+            setTimeout(() => levelUp.remove(), 1500);
+        }
+        
+        function showDamagePopup(damage, isEnemy) {
+            const scene = document.querySelector('.scene-area');
+            const popup = document.createElement('div');
+            popup.className = 'damage-popup';
+            popup.textContent = `-${damage}`;
+            popup.style.left = isEnemy ? '70%' : '30%';
+            popup.style.top = '30%';
+            scene.appendChild(popup);
+            setTimeout(() => popup.remove(), 1000);
+        }
+
+        function addLog(message) {
+            const time = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+            gameState.battleLog.unshift({ time, message });
+            if (gameState.battleLog.length > 50) gameState.battleLog.pop();
+            renderLog();
+        }
+
+        function renderLog() {
+            const logArea = $('battleLog');
+            logArea.innerHTML = gameState.battleLog.slice(0, 20).map(log => 
+                `<div class="log-entry"><span style="color: #888">[${log.time}]</span> ${log.message}</div>`
+            ).join('');
+        }
+
+        // 角色创建
+        function initCreateChar() {
+            let selectedRace = 'human';
+            let selectedChar = null;
+            let selectedFaction = null;
+
+            document.querySelectorAll('.race-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.race-btn').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    selectedRace = btn.dataset.race;
+                    selectedChar = null;
+                    selectedFaction = null;
+                    renderCharSelect(selectedRace);
+                    renderFactionSelect(selectedRace);
+                });
+            });
+
+            function renderCharSelect(race) {
+                const charSelect = $('charSelect');
+                charSelect.innerHTML = CHARACTERS[race].map(char => `
+                    <div class="char-option" data-char="${char.id}">
+                        <div class="char-option-avatar">${char.avatar}</div>
+                        <div class="char-option-name">${char.name}</div>
+                    </div>
+                `).join('');
+
+                charSelect.querySelectorAll('.char-option').forEach(option => {
+                    option.addEventListener('click', () => {
+                        charSelect.querySelectorAll('.char-option').forEach(o => o.classList.remove('selected'));
+                        option.classList.add('selected');
+                        selectedChar = CHARACTERS[race].find(c => c.id === option.dataset.char);
+                    });
+                });
+            }
+
+            function renderFactionSelect(race) {
+                const factionSelect = $('factionSelect');
+                factionSelect.innerHTML = FACTIONS[race].map(faction => `
+                    <button class="faction-btn" data-faction="${faction.id}">
+                        ${faction.name} ${Object.entries(faction.bonus).map(([k, v]) => `+${v}${k}`).join(' ')}
+                    </button>
+                `).join('');
+
+                factionSelect.querySelectorAll('.faction-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        factionSelect.querySelectorAll('.faction-btn').forEach(b => b.classList.remove('selected'));
+                        btn.classList.add('selected');
+                        selectedFaction = FACTIONS[race].find(f => f.id === btn.dataset.faction);
+                    });
+                });
+            }
+
+            renderCharSelect('human');
+            renderFactionSelect('human');
+
+            $('createCharBtn').addEventListener('click', () => {
+                const name = $('charNameInput').value.trim() || '逍遥生';
+                
+                if (!selectedChar) selectedChar = CHARACTERS[selectedRace][0];
+                if (!selectedFaction) selectedFaction = FACTIONS[selectedRace][0];
+
+                gameState.player = {
+                    name: name,
+                    race: selectedRace,
+                    char: selectedChar,
+                    faction: selectedFaction,
+                    level: 1,
+                    exp: 0,
+                    expToNext: 100,
+                    hp: 100,
+                    maxHp: 100,
+                    mp: 50,
+                    maxMp: 50,
+                    attack: 15 + (selectedFaction.bonus.attack || 0),
+                    defense: 8 + (selectedFaction.bonus.defense || 0),
+                    speed: 10,
+                    spirit: 5 + (selectedFaction.bonus.spirit || 0),
+                    gold: 0,
+                    diamond: 0
+                };
+
+                if (selectedFaction.bonus.hp) {
+                    gameState.player.maxHp += selectedFaction.bonus.hp;
+                    gameState.player.hp = gameState.player.maxHp;
+                }
+                if (selectedFaction.bonus.mp) {
+                    gameState.player.maxMp += selectedFaction.bonus.mp;
+                    gameState.player.mp = gameState.player.maxMp;
+                }
+
+                saveGame();
+                $('createCharScreen').classList.add('hidden');
+                updateUI();
+                spawnEnemy();
+                showNotification(`欢迎，${name}！`);
+            });
+        }
+
+        // 战斗系统
+        function spawnEnemy() {
+            const levelRange = Math.floor(gameState.player.level / 5);
+            const availableMonsters = MONSTERS.slice(0, Math.min(levelRange + 3, MONSTERS.length));
+            const randomMonster = availableMonsters[Math.floor(Math.random() * availableMonsters.length)];
+            
+            const levelMod = 1 + (gameState.player.level - 1) * 0.1;
+            
+            gameState.enemy = {
+                name: randomMonster.name,
+                sprite: randomMonster.sprite,
+                hp: Math.floor(randomMonster.hpBase * levelMod),
+                maxHp: Math.floor(randomMonster.hpBase * levelMod),
+                attack: Math.floor(randomMonster.attackBase * levelMod),
+                defense: Math.floor(3 + gameState.player.level * 0.5),
+                exp: Math.floor(randomMonster.expBase * levelMod),
+                gold: Math.floor(randomMonster.goldBase * levelMod)
+            };
+            
+            updateEnemyUI();
+        }
+
+        function calculateDamage(attack, defense) {
+            const baseDamage = Math.max(1, attack - defense * 0.5);
+            const variance = 0.2;
+            const randomFactor = 1 + (Math.random() * variance * 2 - variance);
+            const isCrit = Math.random() < 0.05;
+            let damage = Math.floor(baseDamage * randomFactor);
+            if (isCrit) damage = Math.floor(damage * 1.5);
+            return { damage, isCrit };
+        }
+
+        function performAttack() {
+            if (!gameState.enemy || gameState.enemy.hp <= 0) return;
+
+            const { damage: playerDamage, isCrit } = calculateDamage(gameState.player.attack, gameState.enemy.defense || 3);
+            gameState.enemy.hp -= playerDamage;
+            
+            const critText = isCrit ? ' <span class="log-damage">暴击!</span>' : '';
+            addLog(`你对${gameState.enemy.name}造成 <span class="log-damage">${playerDamage}</span> 点伤害${critText}`);
+            showDamagePopup(playerDamage, true);
+
+            if (gameState.enemy.hp <= 0) {
+                enemyDefeated();
+            } else {
+                setTimeout(() => {
+                    const { damage: enemyDamage } = calculateDamage(gameState.enemy.attack, gameState.player.defense);
+                    gameState.player.hp -= enemyDamage;
+                    
+                    addLog(`${gameState.enemy.name}对你造成 <span class="log-damage">${enemyDamage}</span> 点伤害`);
+                    showDamagePopup(enemyDamage, false);
+                    
+                    if (gameState.player.hp <= 0) {
+                        playerDeath();
+                    }
+                    
+                    updateUI();
+                }, 500);
+            }
+
+            updateUI();
+            updateEnemyUI();
+        }
+
+        function useSkill() {
+            if (gameState.player.mp < 10) {
+                showNotification('魔法不足！');
+                return;
+            }
+
+            if (!gameState.enemy || gameState.enemy.hp <= 0) return;
+
+            gameState.player.mp -= 10;
+            const skillName = gameState.player.faction.skills[0];
+            const skillDamage = Math.floor(gameState.player.attack * 2);
+            gameState.enemy.hp -= skillDamage;
+
+            addLog(`使用【<span class="log-skill">${skillName}</span>】造成 <span class="log-damage">${skillDamage}</span> 点伤害`);
+            showDamagePopup(skillDamage, true);
+
+            if (gameState.enemy.hp <= 0) {
+                enemyDefeated();
+            }
+
+            updateUI();
+            updateEnemyUI();
+        }
+
+        function enemyDefeated() {
+            const expGain = gameState.enemy.exp;
+            const goldGain = gameState.enemy.gold;
+
+            gameState.player.exp += expGain;
+            gameState.player.gold += goldGain;
+
+            if (gameState.isAfk) {
+                gameState.afkStats.battles++;
+                gameState.afkStats.exp += expGain;
+                gameState.afkStats.gold += goldGain;
+                updateAfkRewards();
+            }
+
+            if (gameState.tasks[gameState.currentTask].count < gameState.tasks[gameState.currentTask].max) {
+                gameState.tasks[gameState.currentTask].count++;
+                updateTaskUI();
+            }
+
+            addLog(`击败${gameState.enemy.name}！获得 <span class="log-gain">${expGain}</span> 经验，<span class="log-gain">${goldGain}</span> 银两`);
+
+            checkLevelUp();
+            autoRecover();
+
+            setTimeout(() => {
+                spawnEnemy();
+                updateUI();
+            }, 1000);
+        }
+
+        function checkLevelUp() {
+            while (gameState.player.exp >= gameState.player.expToNext) {
+                gameState.player.exp -= gameState.player.expToNext;
+                gameState.player.level++;
+                gameState.player.expToNext = Math.floor(gameState.player.expToNext * 1.5);
+
+                gameState.player.maxHp += 20;
+                gameState.player.hp = gameState.player.maxHp;
+                gameState.player.maxMp += 10;
+                gameState.player.mp = gameState.player.maxMp;
+                gameState.player.attack += 3;
+                gameState.player.defense += 2;
+                gameState.player.speed += 1;
+                gameState.player.spirit += 1;
+
+                addLog(`<span class="log-level">🎉 恭喜升级！当前等级：${gameState.player.level}</span>`);
+                showLevelUp();
+            }
+        }
+
+        function playerDeath() {
+            gameState.player.hp = gameState.player.maxHp;
+            gameState.player.mp = gameState.player.maxMp;
+
+            const goldLoss = Math.floor(gameState.player.gold * 0.1);
+            gameState.player.gold -= goldLoss;
+
+            addLog(`💀 你被击败了！损失 ${goldLoss} 银两`);
+
+            if (gameState.isAfk) {
+                toggleAfk();
+            }
+        }
+
+        function autoRecover() {
+            if (gameState.player.hp < gameState.player.maxHp) {
+                gameState.player.hp = Math.min(gameState.player.maxHp, gameState.player.hp + Math.floor(gameState.player.maxHp * 0.2));
+            }
+            if (gameState.player.mp < gameState.player.maxMp) {
+                gameState.player.mp = Math.min(gameState.player.maxMp, gameState.player.mp + Math.floor(gameState.player.maxMp * 0.2));
+            }
+        }
+
+        function toggleAuto() {
+            gameState.isAuto = !gameState.isAuto;
+            const btn = $('autoBtn');
+
+            if (gameState.isAuto) {
+                btn.classList.add('active');
+                btn.textContent = '⏸️ 停止';
+                gameState.autoInterval = setInterval(performAttack, 1500);
+            } else {
+                btn.classList.remove('active');
+                btn.textContent = '🔄 自动';
+                clearInterval(gameState.autoInterval);
+            }
+        }
+
+        function toggleAfk() {
+            gameState.isAfk = !gameState.isAfk;
+            const btn = $('afkBtn');
+            const status = $('afkStatus');
+            const rewards = $('afkRewards');
+
+            if (gameState.isAfk) {
+                btn.textContent = '⏹️ 停止挂机';
+                btn.className = 'afk-btn stop-afk';
+                status.textContent = '⏳ 挂机中...';
+                rewards.style.display = 'block';
+                gameState.afkStats = { battles: 0, exp: 0, gold: 0 };
+                
+                if (!gameState.isAuto) toggleAuto();
+                
+                gameState.afkInterval = setInterval(saveGame, 30000);
+            } else {
+                btn.textContent = '🚀 开始挂机';
+                btn.className = 'afk-btn start-afk';
+                status.textContent = '点击开始自动挂机';
+                rewards.style.display = 'none';
+                
+                if (gameState.isAuto) toggleAuto();
+                clearInterval(gameState.afkInterval);
+                saveGame();
+            }
+        }
+
+        function updateAfkRewards() {
+            $('afkBattles').textContent = gameState.afkStats.battles;
+            $('afkExp').textContent = gameState.afkStats.exp;
+            $('afkGold').textContent = gameState.afkStats.gold;
+        }
+
+        // UI 更新
+        function updateUI() {
+            if (!gameState.player) return;
+
+            $('topPlayerName').textContent = gameState.player.name;
+            $('topPlayerLevel').textContent = gameState.player.level;
+            $('topPlayerFaction').textContent = gameState.player.faction.name;
+            $('topGold').textContent = gameState.player.gold;
+            $('topDiamond').textContent = gameState.player.diamond;
+
+            $('playerNameDisplay').textContent = gameState.player.name;
+            $('playerFactionDisplay').textContent = gameState.player.faction.name;
+            $('playerAvatar').textContent = gameState.player.char.avatar;
+            $('playerSprite').textContent = gameState.player.char.sprite;
+            $('battlePlayerName').textContent = gameState.player.name;
+
+            $('currentHp').textContent = Math.floor(gameState.player.hp);
+            $('maxHp').textContent = gameState.player.maxHp;
+            $('currentMp').textContent = Math.floor(gameState.player.mp);
+            $('maxMp').textContent = gameState.player.maxMp;
+            $('currentExp').textContent = gameState.player.exp;
+            $('maxExp').textContent = gameState.player.expToNext;
+
+            $('hpBar').style.width = `${(gameState.player.hp / gameState.player.maxHp) * 100}%`;
+            $('mpBar').style.width = `${(gameState.player.mp / gameState.player.maxMp) * 100}%`;
+            $('expBar').style.width = `${(gameState.player.exp / gameState.player.expToNext) * 100}%`;
+
+            $('attack').textContent = gameState.player.attack;
+            $('defense').textContent = gameState.player.defense;
+            $('speed').textContent = gameState.player.speed;
+            $('spirit').textContent = gameState.player.spirit;
+
+            $('playerHpDisplay').textContent = `${Math.floor(gameState.player.hp)}/${gameState.player.maxHp}`;
+        }
+
+        function updateEnemyUI() {
+            if (gameState.enemy) {
+                $('enemySprite').textContent = gameState.enemy.sprite;
+                $('enemyName').textContent = gameState.enemy.name;
+                $('enemyHpDisplay').textContent = `${Math.max(0, Math.floor(gameState.enemy.hp))}/${gameState.enemy.maxHp}`;
+            }
+        }
+
+        function updateTaskUI() {
+            for (const [taskId, task] of Object.entries(gameState.tasks)) {
+                $(`${taskId}Count`).textContent = task.count;
+                $(`${taskId}Progress`).style.width = `${(task.count / task.max) * 100}%`;
+            }
+        }
+
+        // 数据存储
+        function saveGame() {
+            const data = {
+                player: gameState.player,
+                tasks: gameState.tasks,
+                lastSave: Date.now()
+            };
+            localStorage.setItem('mhxyIdleGameV2', JSON.stringify(data));
+        }
+
+        function loadGame() {
+            const saved = localStorage.getItem('mhxyIdleGameV2');
+            if (saved) {
+                const data = JSON.parse(saved);
+                if (data.player) {
+                    gameState.player = data.player;
+                    gameState.tasks = data.tasks || gameState.tasks;
+
+                    if (data.lastSave) {
+                        const offlineTime = Date.now() - data.lastSave;
+                        const offlineHours = offlineTime / (1000 * 60 * 60);
+                        const effectiveHours = Math.min(offlineHours, 24);
+
+                        if (effectiveHours > 0.1) {
+                            const offlineExp = Math.floor(gameState.player.level * 100 * effectiveHours);
+                            const offlineGold = Math.floor(gameState.player.level * 50 * effectiveHours);
+                            
+                            gameState.player.exp += offlineExp;
+                            gameState.player.gold += offlineGold;
+                            
+                            checkLevelUp();
+                            
+                            showNotification(`离线 ${effectiveHours.toFixed(1)} 小时，获得 ${offlineExp} 经验，${offlineGold} 银两`);
+                            addLog(`离线 ${effectiveHours.toFixed(1)} 小时，获得 <span class="log-gain">${offlineExp}</span> 经验，<span class="log-gain">${offlineGold}</span> 银两`);
+                        }
+                    }
+
+                    $('createCharScreen').classList.add('hidden');
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // 初始化
+        function init() {
+            if (!loadGame()) {
+                initCreateChar();
+            } else {
+                spawnEnemy();
+                updateUI();
+                updateTaskUI();
+                showNotification(`欢迎回来，${gameState.player.name}！`);
+            }
+
+            $('attackBtn').addEventListener('click', performAttack);
+            $('autoBtn').addEventListener('click', toggleAuto);
+            $('skillBtn').addEventListener('click', useSkill);
+            $('afkBtn').addEventListener('click', toggleAfk);
+
+            document.querySelectorAll('.task-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    document.querySelectorAll('.task-item').forEach(i => i.classList.remove('active'));
+                    item.classList.add('active');
+                    gameState.currentTask = item.dataset.task;
+                });
+            });
+
+            setInterval(saveGame, 60000);
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
