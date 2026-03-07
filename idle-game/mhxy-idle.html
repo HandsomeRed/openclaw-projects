@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏮 梦幻西游放置挂机</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(180deg, #1a0a2e 0%, #2d1b4e 50%, #1a0a2e 100%);
+            min-height: 100vh;
+            color: #f0e6d3;
+        }
+        .container { max-width: 1000px; margin: 0 auto; padding: 15px; }
+        
+        header {
+            text-align: center;
+            padding: 20px 0;
+            background: linear-gradient(90deg, #4a1a6b, #6b2d8a, #4a1a6b);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(106, 45, 138, 0.5);
+        }
+        header h1 {
+            font-size: 2em;
+            color: #ffd700;
+            text-shadow: 2px 2px 4px #000;
+        }
+        header p { color: #c9a8ff; font-size: 0.9em; margin-top: 5px; }
+        
+        .main-area { display: grid; grid-template-columns: 250px 1fr; gap: 15px; }
+        
+        .player-panel {
+            background: rgba(30, 15, 50, 0.9);
+            border-radius: 10px;
+            padding: 15px;
+            border: 2px solid #6b2d8a;
+        }
+        .player-avatar {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 10px;
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+        .player-name { text-align: center; font-size: 1.2em; color: #ffd700; margin-bottom: 10px; }
+        .player-level { text-align: center; color: #87ceeb; margin-bottom: 15px; }
+        
+        .stat-bar { margin-bottom: 8px; }
+        .stat-label { display: flex; justify-content: space-between; font-size: 0.85em; margin-bottom: 3px; }
+        .bar-bg { height: 12px; background: #1a0a2e; border-radius: 6px; overflow: hidden; }
+        .bar-fill { height: 100%; transition: width 0.3s; }
+        .hp-bar { background: linear-gradient(90deg, #ff4444, #ff6b6b); }
+        .mp-bar { background: linear-gradient(90deg, #4444ff, #6b6bff); }
+        .exp-bar { background: linear-gradient(90deg, #44ff44, #6bff6b); }
+        
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px; font-size: 0.85em; }
+        .stat-item { background: rgba(107, 45, 138, 0.3); padding: 5px 8px; border-radius: 5px; }
+        .stat-value { color: #ffd700; float: right; }
+        
+        .game-panel {
+            background: rgba(30, 15, 50, 0.9);
+            border-radius: 10px;
+            padding: 15px;
+            border: 2px solid #6b2d8a;
+        }
+        
+        .scene-area {
+            height: 200px;
+            background: linear-gradient(180deg, #2d1b4e 0%, #1a3a1a 100%);
+            border-radius: 8px;
+            margin-bottom: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+        .scene-bg { position: absolute; width: 100%; height: 100%; opacity: 0.3; }
+        .scene-title {
+            position: absolute;
+            top: 10px;
+            left: 15px;
+            font-size: 1.1em;
+            color: #ffd700;
+            text-shadow: 1px 1px 3px #000;
+        }
+        
+        .battle-area {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            height: 150px;
+            padding-top: 30px;
+        }
+        .character {
+            text-align: center;
+            transition: transform 0.2s;
+        }
+        .character:hover { transform: scale(1.1); }
+        .char-sprite {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #6b2d8a, #9b4dca);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            margin: 0 auto 5px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+        .enemy .char-sprite { background: linear-gradient(135deg, #8b0000, #cd5c5c); }
+        .char-name { font-size: 0.85em; color: #fff; }
+        .char-hp { font-size: 0.75em; color: #ff6b6b; margin-top: 3px; }
+        
+        .vs-text {
+            font-size: 2em;
+            color: #ffd700;
+            text-shadow: 2px 2px 4px #000;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .action-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .action-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: bold;
+        }
+        .attack-btn {
+            background: linear-gradient(180deg, #ff6b35, #d63031);
+            color: white;
+            box-shadow: 0 4px 0 #8b0000;
+        }
+        .attack-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #8b0000; }
+        .attack-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #8b0000; }
+        .auto-btn {
+            background: linear-gradient(180deg, #44b272, #2d8659);
+            color: white;
+            box-shadow: 0 4px 0 #1a4d35;
+        }
+        .auto-btn.active { background: linear-gradient(180deg, #ffd700, #ff8c00); }
+        
+        .info-tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            background: rgba(107, 45, 138, 0.5);
+            color: #c9a8ff;
+            border-radius: 5px 5px 0 0;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        .tab-btn.active {
+            background: rgba(107, 45, 138, 0.9);
+            color: #ffd700;
+        }
+        
+        .tab-content {
+            background: rgba(107, 45, 138, 0.3);
+            border-radius: 0 0 8px 8px;
+            padding: 10px;
+            min-height: 150px;
+        }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+        
+        .item-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+        .item-slot {
+            aspect-ratio: 1;
+            background: rgba(30, 15, 50, 0.8);
+            border: 2px solid #6b2d8a;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .item-slot:hover { border-color: #ffd700; transform: scale(1.05); }
+        .item-slot.empty { opacity: 0.5; }
+        
+        .equipment-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .equip-item {
+            background: rgba(30, 15, 50, 0.8);
+            border: 2px solid #6b2d8a;
+            border-radius: 8px;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .equip-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        .equip-info { flex: 1; }
+        .equip-name { font-size: 0.9em; color: #ffd700; }
+        .equip-stats { font-size: 0.75em; color: #87ceeb; }
+        
+        .log-area {
+            max-height: 120px;
+            overflow-y: auto;
+            font-size: 0.85em;
+            line-height: 1.6;
+        }
+        .log-entry { padding: 3px 0; border-bottom: 1px solid rgba(107, 45, 138, 0.3); }
+        .log-damage { color: #ff6b6b; }
+        .log-gain { color: #44ff44; }
+        .log-level { color: #ffd700; font-weight: bold; }
+        
+        .bottom-bar {
+            display: flex;
+            justify-content: space-around;
+            background: rgba(30, 15, 50, 0.9);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            border: 2px solid #6b2d8a;
+        }
+        .currency {
+            text-align: center;
+            padding: 0 20px;
+        }
+        .currency-icon { font-size: 1.5em; margin-bottom: 5px; }
+        .currency-value { font-size: 1.1em; color: #ffd700; }
+        .currency-name { font-size: 0.8em; color: #c9a8ff; }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: linear-gradient(135deg, #6b2d8a, #9b4dca);
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .damage-popup {
+            position: absolute;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #ff4444;
+            text-shadow: 2px 2px 0 #000;
+            animation: damageFloat 1s ease-out forwards;
+            pointer-events: none;
+        }
+        @keyframes damageFloat {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-50px); opacity: 0; }
+        }
+        
+        .level-up {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3em;
+            color: #ffd700;
+            text-shadow: 3px 3px 0 #000;
+            animation: levelUp 1.5s ease-out forwards;
+            z-index: 1000;
+        }
+        @keyframes levelUp {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏮 梦幻西游放置挂机</h1>
+            <p>三界奇遇，一触即发</p>
+        </header>
+        
+        <div class="main-area">
+            <div class="player-panel">
+                <div class="player-avatar">🧙</div>
+                <div class="player-name" id="playerName">逍遥生</div>
+                <div class="player-level">Lv.<span id="playerLevel">1</span> <span id="playerJob">剑侠客</span></div>
+                
+                <div class="stat-bar">
+                    <div class="stat-label">
+                        <span>❤️ 气血</span>
+                        <span><span id="currentHp">100</span>/<span id="maxHp">100</span></span>
+                    </div>
+                    <div class="bar-bg"><div class="bar-fill hp-bar" id="hpBar" style="width: 100%"></div></div>
+                </div>
+                
+                <div class="stat-bar">
+                    <div class="stat-label">
+                        <span>💧 魔法</span>
+                        <span><span id="currentMp">50</span>/<span id="maxMp">50</span></span>
+                    </div>
+                    <div class="bar-bg"><div class="bar-fill mp-bar" id="mpBar" style="width: 100%"></div></div>
+                </div>
+                
+                <div class="stat-bar">
+                    <div class="stat-label">
+                        <span>✨ 经验</span>
+                        <span><span id="currentExp">0</span>/<span id="maxExp">100</span></span>
+                    </div>
+                    <div class="bar-bg"><div class="bar-fill exp-bar" id="expBar" style="width: 0%"></div></div>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-item">⚔️ 攻击 <span class="stat-value" id="attack">15</span></div>
+                    <div class="stat-item">🛡️ 防御 <span class="stat-value" id="defense">8</span></div>
+                    <div class="stat-item">⚡ 速度 <span class="stat-value" id="speed">10</span></div>
+                    <div class="stat-item">🎯 灵力 <span class="stat-value" id="spirit">5</span></div>
+                </div>
+            </div>
+            
+            <div class="game-panel">
+                <div class="scene-area">
+                    <div class="scene-title">📍 <span id="sceneName">长安城外</span></div>
+                    <div class="battle-area">
+                        <div class="character player">
+                            <div class="char-sprite">🧙</div>
+                            <div class="char-name">逍遥生</div>
+                            <div class="char-hp" id="playerHpDisplay">100/100</div>
+                        </div>
+                        <div class="vs-text">⚔️</div>
+                        <div class="character enemy">
+                            <div class="char-sprite" id="enemySprite">🐷</div>
+                            <div class="char-name" id="enemyName">野猪</div>
+                            <div class="char-hp" id="enemyHpDisplay">30/30</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="action-bar">
+                    <button class="action-btn attack-btn" id="attackBtn" onclick="performAttack()">⚔️ 攻击</button>
+                    <button class="action-btn auto-btn" id="autoBtn" onclick="toggleAuto()">🔄 自动</button>
+                    <button class="action-btn" style="background: linear-gradient(180deg, #4a90d9, #2d5a8a); color: white;" onclick="useSkill()">✨ 技能</button>
+                </div>
+                
+                <div class="info-tabs">
+                    <button class="tab-btn active" onclick="switchTab('items')">🎒 物品</button>
+                    <button class="tab-btn" onclick="switchTab('equipment')">⚔️ 装备</button>
+                    <button class="tab-btn" onclick="switchTab('log')">📜 日志</button>
+                </div>
+                
+                <div class="tab-content">
+                    <div class="tab-panel active" id="items-panel">
+                        <div class="item-grid" id="inventory"></div>
+                    </div>
+                    <div class="tab-panel" id="equipment-panel">
+                        <div class="equipment-list" id="equipmentList"></div>
+                    </div>
+                    <div class="tab-panel" id="log-panel">
+                        <div class="log-area" id="battleLog"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bottom-bar">
+            <div class="currency">
+                <div class="currency-icon">💰</div>
+                <div class="currency-value" id="gold">0</div>
+                <div class="currency-name">银两</div>
+            </div>
+            <div class="currency">
+                <div class="currency-icon">💎</div>
+                <div class="currency-value" id="diamond">0</div>
+                <div class="currency-name">仙玉</div>
+            </div>
+            <div class="currency">
+                <div class="currency-icon">📜</div>
+                <div class="currency-value" id="scrolls">0</div>
+                <div class="currency-name">宝图</div>
+            </div>
+            <div class="currency">
+                <div class="currency-icon">🏆</div>
+                <div class="currency-value" id="achievements">0</div>
+                <div class="currency-name">成就</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 游戏数据
+        const gameData = {
+            player: {
+                name: '逍遥生',
+                job: '剑侠客',
+                level: 1,
+                hp: 100,
+                maxHp: 100,
+                mp: 50,
+                maxMp: 50,
+                exp: 0,
+                maxExp: 100,
+                attack: 15,
+                defense: 8,
+                speed: 10,
+                spirit: 5,
+                gold: 0,
+                diamond: 0,
+                scrolls: 0
+            },
+            enemy: null,
+            isAuto: false,
+            autoInterval: null,
+            battleLog: [],
+            inventory: [],
+            equipment: []
+        };
+
+        // 怪物列表
+        const monsters = [
+            { name: '野猪', sprite: '🐷', hp: 30, attack: 5, exp: 15, gold: 5 },
+            { name: '山贼', sprite: '🗡️', hp: 45, attack: 8, exp: 25, gold: 10 },
+            { name: '狐狸精', sprite: '🦊', hp: 35, attack: 12, exp: 30, gold: 15 },
+            { name: '黑熊', sprite: '🐻', hp: 60, attack: 10, exp: 35, gold: 18 },
+            { name: '龙虾怪', sprite: '🦞', hp: 50, attack: 15, exp: 40, gold: 22 },
+            { name: '蛤蟆精', sprite: '🐸', hp: 40, attack: 18, exp: 45, gold: 25 },
+            { name: '蜘蛛精', sprite: '🕷️', hp: 55, attack: 20, exp: 50, gold: 30 },
+            { name: '牛头', sprite: '🐂', hp: 80, attack: 22, exp: 60, gold: 35 },
+            { name: '马面', sprite: '🐴', hp: 75, attack: 25, exp: 65, gold: 40 },
+            { name: '幽灵', sprite: '👻', hp: 65, attack: 28, exp: 70, gold: 45 }
+        ];
+
+        // 装备列表
+        const equipmentTypes = [
+            { type: 'weapon', name: '武器', icon: '⚔️' },
+            { type: 'armor', name: '防具', icon: '🛡️' },
+            { type: 'accessory', name: '饰品', icon: '💍' }
+        ];
+
+        // 初始化游戏
+        function initGame() {
+            loadGameData();
+            spawnEnemy();
+            updateUI();
+            renderInventory();
+            renderEquipment();
+            
+            // 自动保存
+            setInterval(saveGameData, 30000);
+            
+            // 离线收益计算
+            calculateOfflineRewards();
+        }
+
+        // 生成敌人
+        function spawnEnemy() {
+            const levelRange = Math.floor(gameData.player.level / 5);
+            const availableMonsters = monsters.slice(0, Math.min(levelRange + 3, monsters.length));
+            const randomMonster = availableMonsters[Math.floor(Math.random() * availableMonsters.length)];
+            
+            const levelMod = 1 + (gameData.player.level - 1) * 0.1;
+            
+            gameData.enemy = {
+                name: randomMonster.name,
+                sprite: randomMonster.sprite,
+                hp: Math.floor(randomMonster.hp * levelMod),
+                maxHp: Math.floor(randomMonster.hp * levelMod),
+                attack: Math.floor(randomMonster.attack * levelMod),
+                exp: Math.floor(randomMonster.exp * levelMod),
+                gold: Math.floor(randomMonster.gold * levelMod)
+            };
+            
+            updateEnemyUI();
+        }
+
+        // 执行攻击
+        function performAttack() {
+            if (!gameData.enemy || gameData.enemy.hp <= 0) return;
+            
+            // 玩家攻击
+            const playerDamage = calculateDamage(gameData.player.attack, gameData.enemy.attack);
+            gameData.enemy.hp -= playerDamage;
+            
+            addLog(`你对${gameData.enemy.name}造成 <span class="log-damage">${playerDamage}</span> 点伤害`);
+            
+            // 显示伤害数字
+            showDamagePopup(playerDamage, '.enemy');
+            
+            if (gameData.enemy.hp <= 0) {
+                // 敌人死亡
+                enemyDefeated();
+            } else {
+                // 敌人反击
+                setTimeout(() => {
+                    const enemyDamage = calculateDamage(gameData.enemy.attack, gameData.player.defense);
+                    gameData.player.hp -= enemyDamage;
+                    
+                    addLog(`${gameData.enemy.name}对你造成 <span class="log-damage">${enemyDamage}</span> 点伤害`);
+                    showDamagePopup(enemyDamage, '.player');
+                    
+                    if (gameData.player.hp <= 0) {
+                        playerDeath();
+                    }
+                    
+                    updateUI();
+                }, 500);
+            }
+            
+            updateUI();
+            updateEnemyUI();
+        }
+
+        // 计算伤害
+        function calculateDamage(attack, defense) {
+            const baseDamage = Math.max(1, attack - defense * 0.5);
+            const variance = 0.2;
+            const randomFactor = 1 + (Math.random() * variance * 2 - variance);
+            return Math.floor(baseDamage * randomFactor);
+        }
+
+        // 敌人被击败
+        function enemyDefeated() {
+            const expGain = gameData.enemy.exp;
+            const goldGain = gameData.enemy.gold;
+            
+            gameData.player.exp += expGain;
+            gameData.player.gold += goldGain;
+            
+            addLog(`击败${gameData.enemy.name}！获得 <span class="log-gain">${expGain}</span> 经验，<span class="log-gain">${goldGain}</span> 银两`);
+            
+            // 检查升级
+            checkLevelUp();
+            
+            // 随机掉落装备
+            if (Math.random() < 0.1) {
+                dropEquipment();
+            }
+            
+            // 生成新敌人
+            setTimeout(() => {
+                spawnEnemy();
+                updateUI();
+            }, 1000);
+        }
+
+        // 检查升级
+        function checkLevelUp() {
+            while (gameData.player.exp >= gameData.player.maxExp) {
+                gameData.player.exp -= gameData.player.maxExp;
+                gameData.player.level++;
+                gameData.player.maxExp = Math.floor(gameData.player.maxExp * 1.5);
+                
+                // 属性提升
+                gameData.player.maxHp += 20;
+                gameData.player.hp = gameData.player.maxHp;
+                gameData.player.maxMp += 10;
+                gameData.player.mp = gameData.player.maxMp;
+                gameData.player.attack += 3;
+                gameData.player.defense += 2;
+                gameData.player.speed += 1;
+                gameData.player.spirit += 1;
+                
+                addLog(`<span class="log-level">🎉 恭喜升级！当前等级：${gameData.player.level}</span>`);
+                showLevelUp();
+            }
+        }
+
+        // 玩家死亡
+        function playerDeath() {
+            gameData.player.hp = gameData.player.maxHp;
+            gameData.player.mp = gameData.player.maxMp;
+            
+            // 惩罚：损失部分银两
+            const goldLoss = Math.floor(gameData.player.gold * 0.1);
+            gameData.player.gold -= goldLoss;
+            
+            addLog(`💀 你被击败了！损失 ${goldLoss} 银两`);
+            
+            if (gameData.isAuto) {
+                toggleAuto();
+            }
+        }
+
+        // 切换自动战斗
+        function toggleAuto() {
+            gameData.isAuto = !gameData.isAuto;
+            const btn = document.getElementById('autoBtn');
+            
+            if (gameData.isAuto) {
+                btn.classList.add('active');
+                btn.textContent = '⏸️ 停止';
+                gameData.autoInterval = setInterval(performAttack, 1000);
+            } else {
+                btn.classList.remove('active');
+                btn.textContent = '🔄 自动';
+                clearInterval(gameData.autoInterval);
+            }
+        }
+
+        // 使用技能
+        function useSkill() {
+            if (gameData.player.mp < 10) {
+                showNotification('魔法不足！');
+                return;
+            }
+            
+            gameData.player.mp -= 10;
+            const skillDamage = gameData.player.attack * 2;
+            gameData.enemy.hp -= skillDamage;
+            
+            addLog(`使用【横扫千军】造成 <span class="log-damage">${skillDamage}</span> 点伤害`);
+            showDamagePopup(skillDamage, '.enemy');
+            
+            if (gameData.enemy.hp <= 0) {
+                enemyDefeated();
+            }
+            
+            updateUI();
+            updateEnemyUI();
+        }
+
+        // 掉落装备
+        function dropEquipment() {
+            const equipNames = ['铁剑', '钢剑', '银剑', '金剑', '玄铁剑'];
+            const rarity = ['普通', '优秀', '精良', '史诗', '传说'];
+            const colors = ['#fff', '#1eff00', '#0070dd', '#a335ee', '#ff8000'];
+            
+            const randomRarity = Math.floor(Math.random() * 5);
+            const equip = {
+                name: equipNames[randomRarity],
+                rarity: randomRarity,
+                color: colors[randomRarity],
+                attack: 5 + randomRarity * 3,
+                icon: '⚔️'
+            };
+            
+            gameData.equipment.push(equip);
+            addLog(`获得装备：<span style="color: ${equip.color}">${equip.name}</span>`);
+            renderEquipment();
+        }
+
+        // 显示伤害数字
+        function showDamagePopup(damage, target) {
+            const scene = document.querySelector('.scene-area');
+            const popup = document.createElement('div');
+            popup.className = 'damage-popup';
+            popup.textContent = `-${damage}`;
+            popup.style.left = target === '.enemy' ? '70%' : '30%';
+            popup.style.top = '30%';
+            scene.appendChild(popup);
+            
+            setTimeout(() => popup.remove(), 1000);
+        }
+
+        // 显示升级效果
+        function showLevelUp() {
+            const levelUp = document.createElement('div');
+            levelUp.className = 'level-up';
+            levelUp.textContent = 'LEVEL UP!';
+            document.body.appendChild(levelUp);
+            
+            setTimeout(() => levelUp.remove(), 1500);
+        }
+
+        // 显示通知
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => notification.remove(), 3000);
+        }
+
+        // 添加日志
+        function addLog(message) {
+            const time = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+            gameData.battleLog.unshift({ time, message });
+            
+            if (gameData.battleLog.length > 50) {
+                gameData.battleLog.pop();
+            }
+            
+            renderLog();
+        }
+
+        // 切换标签页
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(`${tabName}-panel`).classList.add('active');
+        }
+
+        // 渲染物品栏
+        function renderInventory() {
+            const inventory = document.getElementById('inventory');
+            let html = '';
+            
+            for (let i = 0; i < 20; i++) {
+                const item = gameData.inventory[i];
+                if (item) {
+                    html += `<div class="item-slot" title="${item.name}">${item.icon}</div>`;
+                } else {
+                    html += `<div class="item-slot empty"></div>`;
+                }
+            }
+            
+            inventory.innerHTML = html;
+        }
+
+        // 渲染装备栏
+        function renderEquipment() {
+            const equipmentList = document.getElementById('equipmentList');
+            let html = '';
+            
+            gameData.equipment.forEach((equip, index) => {
+                html += `
+                    <div class="equip-item" onclick="equipItem(${index})">
+                        <div class="equip-icon">${equip.icon}</div>
+                        <div class="equip-info">
+                            <div class="equip-name" style="color: ${equip.color}">${equip.name}</div>
+                            <div class="equip-stats">攻击+${equip.attack}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            if (gameData.equipment.length === 0) {
+                html = '<div style="text-align: center; color: #666; padding: 20px;">暂无装备</div>';
+            }
+            
+            equipmentList.innerHTML = html;
+        }
+
+        // 装备物品
+        function equipItem(index) {
+            showNotification(`已装备 ${gameData.equipment[index].name}`);
+        }
+
+        // 渲染日志
+        function renderLog() {
+            const logArea = document.getElementById('logArea');
+            const html = gameData.battleLog.slice(0, 20).map(log => 
+                `<div class="log-entry"><span style="color: #888">[${log.time}]</span> ${log.message}</div>`
+            ).join('');
+            
+            logArea.innerHTML = html;
+        }
+
+        // 更新UI
+        function updateUI() {
+            document.getElementById('playerLevel').textContent = gameData.player.level;
+            document.getElementById('currentHp').textContent = Math.floor(gameData.player.hp);
+            document.getElementById('maxHp').textContent = gameData.player.maxHp;
+            document.getElementById('currentMp').textContent = Math.floor(gameData.player.mp);
+            document.getElementById('maxMp').textContent = gameData.player.maxMp;
+            document.getElementById('currentExp').textContent = gameData.player.exp;
+            document.getElementById('maxExp').textContent = gameData.player.maxExp;
+            
+            document.getElementById('hpBar').style.width = `${(gameData.player.hp / gameData.player.maxHp) * 100}%`;
+            document.getElementById('mpBar').style.width = `${(gameData.player.mp / gameData.player.maxMp) * 100}%`;
+            document.getElementById('expBar').style.width = `${(gameData.player.exp / gameData.player.maxExp) * 100}%`;
+            
+            document.getElementById('attack').textContent = gameData.player.attack;
+            document.getElementById('defense').textContent = gameData.player.defense;
+            document.getElementById('speed').textContent = gameData.player.speed;
+            document.getElementById('spirit').textContent = gameData.player.spirit;
+            
+            document.getElementById('gold').textContent = gameData.player.gold;
+            document.getElementById('playerHpDisplay').textContent = `${Math.floor(gameData.player.hp)}/${gameData.player.maxHp}`;
+        }
+
+        // 更新敌人UI
+        function updateEnemyUI() {
+            if (gameData.enemy) {
+                document.getElementById('enemySprite').textContent = gameData.enemy.sprite;
+                document.getElementById('enemyName').textContent = gameData.enemy.name;
+                document.getElementById('enemyHpDisplay').textContent = 
+                    `${Math.max(0, Math.floor(gameData.enemy.hp))}/${gameData.enemy.maxHp}`;
+            }
+        }
+
+        // 保存游戏数据
+        function saveGameData() {
+            localStorage.setItem('mhxyIdleGame', JSON.stringify(gameData));
+            localStorage.setItem('mhxyIdleGame_lastSave', Date.now());
+        }
+
+        // 加载游戏数据
+        function loadGameData() {
+            const savedData = localStorage.getItem('mhxyIdleGame');
+            if (savedData) {
+                const parsed = JSON.parse(savedData);
+                Object.assign(gameData, parsed);
+                gameData.player.hp = gameData.player.maxHp; // 恢复满血
+                gameData.player.mp = gameData.player.maxMp;
+            }
+        }
+
+        // 计算离线收益
+        function calculateOfflineRewards() {
+            const lastSave = localStorage.getItem('mhxyIdleGame_lastSave');
+            if (lastSave) {
+                const offlineTime = Date.now() - parseInt(lastSave);
+                const offlineMinutes = Math.floor(offlineTime / 60000);
+                
+                if (offlineMinutes > 0) {
+                    const expGain = offlineMinutes * 5 * gameData.player.level;
+                    const goldGain = offlineMinutes * 2 * gameData.player.level;
+                    
+                    gameData.player.exp += expGain;
+                    gameData.player.gold += goldGain;
+                    
+                    checkLevelUp();
+                    
+                    showNotification(`离线收益：+${expGain}经验 +${goldGain}银两`);
+                    addLog(`离线 ${offlineMinutes} 分钟，获得 <span class="log-gain">${expGain}</span> 经验，<span class="log-gain">${goldGain}</span> 银两`);
+                }
+            }
+        }
+
+        // 启动游戏
+        window.onload = initGame;
+    </script>
+</body>
+</html>
