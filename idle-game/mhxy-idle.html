@@ -770,7 +770,7 @@
 
         // 渲染日志
         function renderLog() {
-            const logArea = document.getElementById('logArea');
+            const logArea = document.getElementById('battleLog');
             const html = gameData.battleLog.slice(0, 20).map(log => 
                 `<div class="log-entry"><span style="color: #888">[${log.time}]</span> ${log.message}</div>`
             ).join('');
